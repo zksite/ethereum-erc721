@@ -42,6 +42,8 @@ contract NFToken is
    */
   mapping (address => mapping (address => bool)) internal ownerToOperators;
 
+  bool internal pause = false;
+
   /**
    * @dev Emits when ownership of any NFT changes by any mechanism. This event emits when NFTs are
    * created (`from` == 0) and destroyed (`to` == 0). Exception: during contract creation, any
@@ -95,6 +97,11 @@ contract NFToken is
   {
     address tokenOwner = idToOwner[_tokenId];
     require(tokenOwner == msg.sender || ownerToOperators[tokenOwner][msg.sender]);
+    _;
+  }
+
+  modifier isPause(){
+    require(!pause);
     _;
   }
 
@@ -157,6 +164,7 @@ contract NFToken is
     bytes calldata _data
   )
     external
+    isPause
   {
     _safeTransferFrom(_from, _to, _tokenId, _data);
   }
@@ -176,6 +184,7 @@ contract NFToken is
     uint256 _tokenId
   )
     external
+    isPause
   {
     _safeTransferFrom(_from, _to, _tokenId, "");
   }
@@ -198,6 +207,7 @@ contract NFToken is
     external
     canTransfer(_tokenId)
     validNFToken(_tokenId)
+    isPause
   {
     address tokenOwner = idToOwner[_tokenId];
     require(tokenOwner == _from);
@@ -220,6 +230,7 @@ contract NFToken is
     external
     canOperate(_tokenId)
     validNFToken(_tokenId)
+    isPause
   {
     address tokenOwner = idToOwner[_tokenId];
     require(_approved != tokenOwner);
@@ -240,6 +251,7 @@ contract NFToken is
     bool _approved
   )
     external
+    isPause
   {
     ownerToOperators[msg.sender][_operator] = _approved;
     emit ApprovalForAll(msg.sender, _operator, _approved);
